@@ -24,22 +24,18 @@ public class DataLine {
     
     public DataLine(){}
     
-    public DataLine(double o_x, double o_y, double e_x, double e_y)
-    {
-        setOrigin(o_x,o_y); setEnd(e_x,e_y);
-    }
+    public DataLine(double o_x, double o_y, double e_x, double e_y){ setOrigin(o_x,o_y); setEnd(e_x,e_y); }
     
-    public final DataLine setOrigin(double x, double y){ 
-        originX = x; originY = y;
-        return this;
-    }
+    public final DataLine setOrigin(double x, double y){ originX = x; originY = y;return this;}
+    public final DataLine setEnd(double x, double y){endX = x; endY = y; return this;}
     
-    public final DataLine setEnd(double x, double y){
-        endX = x; endY = y;
-        return this;
-    }
-    
+    public DataLine setArrowSizeOrigin(double size){ arrowSizeOrigin = size; return this;}
+    public DataLine setArrowSizeEnd(double size){arrowSizeEnd = size; return this;}
     public DataLine setArrowAngle(double angle){arrowAngle = angle; return this;}
+    public DataLine setLineColor(int color) { lineColor = color; return this;}
+    public DataLine setLineStyle(int style) { lineStyle = style; return this;}
+    public DataLine setLineWidth(int width) { lineWidth = width; return this;}
+    
     public double getArrowAngle(){ return this.arrowAngle;}
     public double getOriginX(){ return originX; }
     public double getOriginY(){ return originY; }
@@ -49,18 +45,7 @@ public class DataLine {
     public double getArrowSizeOrigin(){ return arrowSizeOrigin;}
     public double getArrowSizeEnd(){ return arrowSizeEnd;}
     
-    public  DataLine setArrowSizeOrigin(double size){ 
-        arrowSizeOrigin = size; return this;
-    }
-    
-    public  DataLine setArrowSizeEnd(double size){ 
-        arrowSizeEnd = size; return this;
-    }
-    
-    public DataLine setLineColor(int color) { lineColor = color; return this;}
-    public DataLine setLineStyle(int style) { lineStyle = style; return this;}
-    public DataLine setLineWidth(int width) { lineWidth = width; return this;}
-    
+
     public int getLineColor(){ return lineColor;}
     public int getLineStyle(){ return lineStyle;}
     public int getLineWidth(){ return lineWidth;}

@@ -747,7 +747,7 @@ public class H2F implements IDataSet {
                 this.getXAxis().min(),this.getXAxis().max());
         H1F sliceX = sliceX(0);
         for(int i = 0; i < getXAxis().getNBins(); i++){
-            this.sliceX(i, sliceX);
+            yAxis.sliceX(i, sliceX, this);
             double mean = sliceX.getMean();
             double rms  = sliceX.getRMS();
             h.setBinContent(i, mean);
@@ -793,24 +793,6 @@ public class H2F implements IDataSet {
         double yMax = yAxis.max();
         int    yNum = yAxis.getNBins();
         H1F sliceX = new H1F(name, name, yNum, yMin, yMax);        
-        for (int y = 0; y < yNum; y++) {
-            sliceX.setBinContent(y, this.getBinContent(xBin,y));
-        }
-        return sliceX;
-    }
-    /**
-     * Creates a 1-D Histogram slice of the specified y Bin
-     *
-     * @param xBin		the bin on the y axis to create a slice of
-     * @param sliceX            slice histogram to fill
-     * @return 			a slice of the x bins on the specified y bin as a 1-D Histogram
-     */
-    public H1F sliceX(int xBin, H1F sliceX) {
-        String name = "Slice of " + xBin + " X Bin";
-        double yMin = yAxis.min();
-        double yMax = yAxis.max();
-        int    yNum = yAxis.getNBins();
-       // H1F sliceX = new H1F(name, name, yNum, yMin, yMax);        
         for (int y = 0; y < yNum; y++) {
             sliceX.setBinContent(y, this.getBinContent(xBin,y));
         }

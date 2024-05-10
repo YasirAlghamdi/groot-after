@@ -11,6 +11,7 @@ import java.awt.Graphics2D;
 import java.util.ArrayList;
 import java.util.List;
 import org.jlab.groot.base.GStyle;
+import org.jlab.groot.base.PadAttributes;
 import org.jlab.groot.base.PadMargins;
 import org.jlab.groot.math.Dimension2D;
 
@@ -73,16 +74,9 @@ public class GraphicsAxisFrame {
         double xcorner = axisFrameDimension.getDimension(0).getMin() + margins.getLeftMargin();
         double ycorner = axisFrameDimension.getDimension(1).getMax() - margins.getBottomMargin();
 
-        axisFrameAxis.get(0).setDimension((int) xcorner,
-                (int) (axisFrameDimension.getDimension(0).getMax()
-                - margins.getRightMargin()));
-        axisFrameAxis.get(1).setDimension((int) ycorner,
-                (int) (axisFrameDimension.getDimension(1).getMin()
-                + margins.getTopMargin())
-        );
-        axisFrameAxis.get(2).setDimension((int) ycorner,
-                (int) (axisFrameDimension.getDimension(1).getMin()
-                + margins.getTopMargin()));
+        axisFrameAxis.get(0).setDimension((int) xcorner, (int) (axisFrameDimension.getDimension(0).getMax() - margins.getRightMargin()));
+        axisFrameAxis.get(1).setDimension((int) ycorner,(int) (axisFrameDimension.getDimension(1).getMin() + margins.getTopMargin()));
+        axisFrameAxis.get(2).setDimension((int) ycorner,(int) (axisFrameDimension.getDimension(1).getMin()+ margins.getTopMargin()));
     }
 
     public void drawAxis(Graphics2D g2d, PadMargins margins) {
@@ -180,5 +174,15 @@ public class GraphicsAxisFrame {
     public int getAxisPointZ(double value) {
         return (int) axisFrameAxis.get(2).getAxisPosition(value);
     }
+
+	public void setFontNameAll(String FontName, PadAttributes attr) {
+		getAxisX().getAttributes().setLabelFontName(FontName);
+		getAxisY().getAttributes().setLabelFontName(FontName);
+		getAxisZ().getAttributes().setLabelFontName(FontName);
+		getAxisX().getAttributes().setTitleFontName(FontName);
+		getAxisY().getAttributes().setTitleFontName(FontName);
+		attr.setTitleFontName(FontName);
+		attr.getStatBoxFont().setFontName(FontName);
+	}
 
 }

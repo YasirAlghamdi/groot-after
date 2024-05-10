@@ -683,13 +683,7 @@ public class EmbeddedPad {
     }
 
     public void setFontNameAll(String FontName) {
-        this.getAxisX().getAttributes().setLabelFontName(FontName);
-        this.getAxisY().getAttributes().setLabelFontName(FontName);
-        this.getAxisZ().getAttributes().setLabelFontName(FontName);
-        this.getAxisX().getAttributes().setTitleFontName(FontName);
-        this.getAxisY().getAttributes().setTitleFontName(FontName);
-        this.attr.setTitleFontName(FontName);
-        this.attr.getStatBoxFont().setFontName(FontName);
+        axisFrame.setFontNameAll(FontName, attr);
     }
 
     public int getStatBoxFontSize() {

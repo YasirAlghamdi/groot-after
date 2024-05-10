@@ -2,6 +2,8 @@ package org.jlab.groot.math;
 
 import java.io.Serializable;
 import java.util.Arrays;
+import org.jlab.groot.data.H1F;
+import org.jlab.groot.data.H2F;
 
 /**
  * Defines the attributes for creating a basic axis template with
@@ -233,4 +235,22 @@ public class Axis implements Serializable {
         long time = end_time - start_time;
         System.out.println("time elapsed = " + time);*/
     }
+
+	/**
+	 * Creates a 1-D Histogram slice of the specified y Bin
+	 * @param xBin 		the bin on the y axis to create a slice of
+	 * @param sliceX             slice histogram to fill
+	 * @param h2F
+	 * @return  			a slice of the x bins on the specified y bin as a 1-D Histogram
+	 */
+	public H1F sliceX(int xBin, H1F sliceX, H2F h2F) {
+		String name = "Slice of " + xBin + " X Bin";
+		double yMin = min();
+		double yMax = max();
+		int yNum = getNBins();
+		for (int y = 0; y < yNum; y++) {
+			sliceX.setBinContent(y, h2F.getBinContent(xBin, y));
+		}
+		return sliceX;
+	}
 }

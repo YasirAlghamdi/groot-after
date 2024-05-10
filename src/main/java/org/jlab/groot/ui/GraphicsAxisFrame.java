@@ -37,12 +37,12 @@ public class GraphicsAxisFrame {
     
     public GraphicsAxisFrame(){
         setAxis(3);
-        initAttributes();
+        frameAttributes.initAttributes();
     }
     
     public GraphicsAxisFrame(int naxis){
         setAxis(naxis);
-        initAttributes();
+        frameAttributes.initAttributes();
     }
     /**
      * sets the dimension of the graphics axis.
@@ -60,33 +60,6 @@ public class GraphicsAxisFrame {
         return this.frameAttributes;
     }
     
-    private void initAttributes(){
-        
-        frameAttributes.addString(AttributeType.STRING_TITLE, "");
-        frameAttributes.addString(AttributeType.STRING_TITLE_X, "");
-        frameAttributes.addString(AttributeType.STRING_TITLE_Y, "");
-        
-        frameAttributes.add(AttributeType.AXIS_LINE_COLOR,  1);
-        frameAttributes.add(AttributeType.AXIS_LINE_WIDTH,  1);
-        frameAttributes.add(AttributeType.AXIS_LINE_STYLE,  1);
-        
-        frameAttributes.add(AttributeType.FILL_COLOR, -11);
-        
-        frameAttributes.add(AttributeType.AXIS_TICKS_SIZE, 15);
-        frameAttributes.add(AttributeType.AXIS_TICKS_STYLE, 0);
-        frameAttributes.add(AttributeType.AXIS_LABEL_OFFSET, 4);
-        frameAttributes.add(AttributeType.AXIS_TITLE_OFFSET, 5);
-        frameAttributes.add(AttributeType.AXIS_FRAME_STYLE, 1);
-        
-        frameAttributes.add(AttributeType.AXIS_GRID_X, 1);
-        frameAttributes.add(AttributeType.AXIS_GRID_Y, 1);
-        
-        frameAttributes.add(AttributeType.AXIS_DRAW_X, 1);
-        frameAttributes.add(AttributeType.AXIS_DRAW_Y, 1);
-        frameAttributes.add(AttributeType.AXIS_DRAW_Z, 0);
-        
-        frameAttributes.copyValues(TStyle.getStyle());
-    }
     /**
      * returns GraphicsAxis from the array with given index.
      * @param index
