@@ -34,8 +34,9 @@ import org.jlab.jnp.graphics.base.PopupProvider;
 public class DataCanvas extends Canvas2D {
     
     
-    private DataCanvasProduct dataCanvasProduct = new DataCanvasProduct();
-	private AttributeCollection   attributes = null;
+    private AttributeCollection   attributes = null;
+    private int                 activeRegion = 0;
+    
     public DataCanvas(){
         super();
         //this.addNode(new GraphicsAxis());
@@ -66,78 +67,170 @@ public class DataCanvas extends Canvas2D {
     }
     
     public void setAxisLimits(double xmin, double xmax, double ymin, double ymax){
-        dataCanvasProduct.setAxisLimits(xmin, xmax, ymin, ymax, this);
+        getRegion(this.activeRegion).getGraphicsAxis().setAxisLimits(xmin, xmax, ymin, ymax);
     }
     
     public void setAxisLimits(boolean automatic){
-        dataCanvasProduct.setAxisLimits(automatic, this);
+        if(automatic==true){
+            getRegion(this.activeRegion).getGraphicsAxis().setAxisAutomatic();
+        }
     }
     
     public void setAxisTitleFont(String fontname, int fontsize, int fontface){
-        dataCanvasProduct.setAxisTitleFont(fontname, fontsize, fontface, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().getAxisX().setAxisTitleFont(fontname, fontsize, fontface);
+            region.getGraphicsAxis().getAxisY().setAxisTitleFont(fontname, fontsize, fontface);
+        }
+        repaint();
     }
     public DataCanvas left(int offset){
-        return dataCanvasProduct.left(offset, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().getInsets().left(offset);
+        }
+        repaint();
+        return this;
     }
     
     
     public DataCanvas setAxisTicks(int ticks, String axis){
-        return dataCanvasProduct.setAxisTicks(ticks, axis, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().setAxisTicks(ticks, axis);
+        }
+        repaint();
+        return this;
     }
     
     public DataCanvas setAxisTitleOffset(int offset, String axis){
-        return dataCanvasProduct.setAxisTitleOffset(offset, axis, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().setAxisTitleOffset(offset, axis);
+        }
+        repaint();
+        return this;
     }
     
     public DataCanvas right(int offset){
-        return dataCanvasProduct.right(offset, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().getInsets().right(offset);
+        }
+        repaint();
+        return this;
     }
     
     public DataCanvas top(int offset){
-        return dataCanvasProduct.top(offset, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().getInsets().top(offset);
+        }
+        repaint();
+        return this;
     }
     
     public DataCanvas bottom(int offset){
-        return dataCanvasProduct.bottom(offset, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().getInsets().bottom(offset);
+        }
+        repaint();
+        return this;
     }
     
     public DataCanvas cd(int region){
-        return dataCanvasProduct.cd(region, this);
+        if(region>=0&&region<getGraphicsComponents().size()){
+            activeRegion = region;
+        }
+        return this;
     }
     
     public DataCanvas draw(IDataSet ds){
-        return dataCanvasProduct.draw(ds, this);
+        draw(ds,""); return this;
     }
     
     public DataCanvas setAxisFontSize(int size){
-        return dataCanvasProduct.setAxisFontSize(size, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            Font fontX = region.getGraphicsAxis().getAxisX().getAxisFont();
+            region.getGraphicsAxis().getAxisX().setAxisFont(new Font(fontX.getFontName(),size,fontX.getStyle()));
+            
+            Font fontY = region.getGraphicsAxis().getAxisY().getAxisFont();
+            region.getGraphicsAxis().getAxisY().setAxisFont(new Font(fontY.getFontName(),size,fontY.getStyle()));            
+        }
+        return this;
     }
     
     public DataCanvas setAxisTitleFontSize(int size){
-        return dataCanvasProduct.setAxisTitleFontSize(size, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            Font fontX = region.getGraphicsAxis().getAxisX().getAxisTitleFont();
+            region.getGraphicsAxis().getAxisX().setAxisTitleFont(new Font(fontX.getFontName(),size,fontX.getStyle()));
+            
+            Font fontY = region.getGraphicsAxis().getAxisY().getAxisTitleFont();
+            region.getGraphicsAxis().getAxisY().setAxisTitleFont(new Font(fontY.getFontName(),size,fontY.getStyle()));            
+        }
+        return this;
     }
     
     public DataCanvas setAxisTitleOffsetX(Integer offset){
-        return dataCanvasProduct.setAxisTitleOffsetX(offset, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().getAxisX().getAttributes().changeValue(AttributeType.AXISTITLEOFFSET, offset.toString());
+        }
+        return this;
     }
     
     
     public DataCanvas addLegend(Legend leg){
-        return dataCanvasProduct.addLegend(leg, this);
+        this.getRegion(this.activeRegion).addNode(leg);
+        return this;
     }
     
     public DataCanvas setAxisTitleOffsetY(Integer offset){
-        return dataCanvasProduct.setAxisTitleOffsetY(offset, this);
+        for(Node2D item : this.getGraphicsComponents()){
+            DataRegion region = (DataRegion) item;
+            region.getGraphicsAxis().getAxisY().getAttributes().changeValue(AttributeType.AXISTITLEOFFSET, offset.toString());
+        }
+        return this;
     }
     
     public DataCanvas draw(IDataSet ds, String options){
-        return dataCanvasProduct.draw(ds, options, this);
+        if(ds instanceof GraphErrors){
+            if(options.contains("same")==false)
+                getRegion(activeRegion).getGraphicsAxis().reset();
+            
+            getRegion(activeRegion).getGraphicsAxis().addDataNode(new GraphNode2D((GraphErrors) ds,options));
+        }
+        
+        if(ds instanceof H1F){
+            if(options.contains("same")==false)
+                getRegion(activeRegion).getGraphicsAxis().reset();
+            
+            getRegion(activeRegion).getGraphicsAxis().addDataNode(new HistogramNode1D((H1F) ds,options));
+        }
+        
+        if(ds instanceof H2F){
+            if(options.contains("same")==false)
+                getRegion(activeRegion).getGraphicsAxis().reset();
+            
+            getRegion(activeRegion).getGraphicsAxis().addDataNode(new HistogramNode2D((H2F) ds));
+        }
+        
+        if(ds instanceof F1D){
+            if(options.contains("same")==false)
+                getRegion(activeRegion).getGraphicsAxis().reset();            
+            getRegion(activeRegion).getGraphicsAxis().addDataNode(new FunctionNode1D((F1D) ds));
+        }
+                
+        return this;
     }
     
     
     
     public DataRegion getRegion(int region){
-        return dataCanvasProduct.getRegion(region, this);
+        return (DataRegion) getGraphicsComponents().get(region);
     }
     
     public void divide(double left, double bottom, int cols, int rows){
@@ -170,7 +263,13 @@ public class DataCanvas extends Canvas2D {
     }
     
     public void editAttributes(){
-        dataCanvasProduct.editAttributes(this);
+        DataRegion pad = (DataRegion) this.getGraphicsComponents().get(1);
+        AttributeDialog dialog = new AttributeDialog(
+                Arrays.asList(pad.getGraphicsAxis().getAxisX().getAttributes(),
+                        pad.getGraphicsAxis().getAxisY().getAttributes()
+                ));
+        dialog.pack();
+        dialog.setVisible(true);
     }
     
     public void export(String filename){

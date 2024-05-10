@@ -12,10 +12,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.KeyListener;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.awt.event.MouseMotionListener;
@@ -34,11 +30,8 @@ import java.util.TimerTask;
 import java.util.stream.Stream;
 
 import javax.imageio.ImageIO;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -47,10 +40,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
-import javax.swing.JTextField;
-import javax.swing.JToggleButton;
 import javax.swing.SwingUtilities;
-import javax.swing.border.TitledBorder;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -59,7 +49,6 @@ import org.jfree.pdf.PDFGraphics2D;
 import org.jfree.pdf.Page;
 import org.jfree.svg.SVGGraphics2D;
 import org.jfree.svg.SVGUtils;
-import org.jlab.groot.base.FontProperties;
 import org.jlab.groot.base.GStyle;
 import org.jlab.groot.base.PadMargins;
 import org.jlab.groot.base.TColorPalette;
@@ -70,10 +59,8 @@ import org.jlab.groot.math.Dimension1D;
 import org.jlab.groot.math.F1D;
 import org.jlab.groot.math.FunctionFactory;
 import org.jlab.groot.ui.FitPanel;
-import org.jlab.groot.ui.JComboCheckBox;
 import org.jlab.groot.ui.LatexText;
 import org.jlab.groot.ui.OptionsPanel;
-import org.jlab.groot.ui.RangeSlider;
 import org.jlab.groot.ui.TransferableImage;
 
 /**
@@ -103,6 +90,7 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
     }
     private int ec_COLUMNS = 1;
     private int ec_ROWS = 1;
+    // private PadMargins           canvasPadding = new PadMargins();
     private int activePad = 0;
     private boolean isChild = false;
     private boolean showFPS = false;
@@ -111,20 +99,22 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
     public EmbeddedCanvas() {
         super();
         Locale.setDefault(Locale.US);
+        //this.setSize(500, 400);
         this.setPreferredSize(new Dimension(500, 400));
-        commonInilizer();
+
+        canvasPads.add(new EmbeddedPad());
+        this.divide(1, 1);
+        this.createPopupMenu();
+        this.initMouse();
     }
 
     public EmbeddedCanvas(int xsize, int ysize) {
         super();
         Locale.setDefault(Locale.US);
+        //this.setSize(500, 400);
         this.setPreferredSize(new Dimension(xsize, ysize));
         this.setSize(xsize, ysize);
-        commonInilizer();
-    }
-    
-    private void commonInilizer() {
-    	canvasPads.add(new EmbeddedPad());
+        canvasPads.add(new EmbeddedPad());
         this.divide(1, 1);
         this.createPopupMenu();
         this.initMouse();
@@ -155,9 +145,7 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
                 canvasPads.remove(i);
             }
         }
-        
         this.update();
-        
         for (int i = 0; i < canvasPads.size(); i++) {
             if (canvasPads.get(i).getDatasetPlotters().size() == 0) {
                 cd(i);
@@ -348,22 +336,32 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
             int h = this.getSize().height;
             
             g2d.setColor(GStyle.getCanvasBackgroundColor());
+            
+            //g2d.setColor(Color.WHITE);
+//            g2d.setColor(new Color(230,230,230));
             g2d.fillRect(0, 0, w, h);
             updateCanvasPads(w, h);
 
             PadMargins margins = new PadMargins();
-
+            //System.out.println(" margins ");
             for (int i = 0; i < canvasPads.size(); i++) {
                 EmbeddedPad pad = canvasPads.get(i);
                 pad.getAxisFrame().updateMargins(g2d);
+                //pad.getAxisFrame().setAxisMargins(pad.getAxisFrame().getFrameMargins());
                 margins.marginFit(pad.getAxisFrame().getFrameMargins());
             }
 
             for (int i = 0; i < canvasPads.size(); i++) {
                 EmbeddedPad pad = canvasPads.get(i);
+                //pad.setDimension(0, 0, w, h);                        
+                //System.out.println("PAD " + i + " " + pad.getAxisFrame().getFrameMargins());
+                //pad.getAxisFrame().setAxisMargins(pad.getAxisFrame().getFrameMargins());                
+                //System.out.println(pad.getAxisFrame().getFrameMargins());
                 pad.getAxisFrame().setAxisMargins(margins);
                 pad.setMargins(margins);
                 margins.marginFit(pad.getAxisFrame().getFrameMargins());
+
+                //pad.draw(g2d);
             }
             for (int i = 0; i < canvasPads.size(); i++) {
                 EmbeddedPad pad = canvasPads.get(i);
@@ -385,6 +383,8 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
                 g2d.setColor(Color.BLUE);
                 g2d.drawString(String.format("%d FPS", (int) (1.0 / (((double) paintingTime) / 1000.0))), 5, 14);
                 g2d.drawString(String.format("%4.2f Avg", (1.0 / ((average) / 1000.0))), 5, 28);
+
+                //System.out.println("Painting time: "+paintingTime+"ms");
             }
             paintingTime += paintingTime;
             numberOfPaints++;
@@ -474,6 +474,7 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
         int row = (int) (y / rowSize);
         int colSize = (int) this.getWidth() / this.ec_COLUMNS;
         int col = (int) (x / colSize);
+        //System.out.println("x:"+x+" y:"+y+" rowSize:"+rowSize+" colSize:"+colSize+" row:"+row+" col:"+col+" can:"+(row*ec_ROWS + col)+" rows:"+ec_ROWS+" cols:"+ec_COLUMNS);
         return row * ec_COLUMNS + col;
     }
 
@@ -486,8 +487,10 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
         int nds = nrows * ncols;
         for (int i = 0; i < nds; i++) {
             List<IDataSet> dsList = group.getData(i);
+            //System.out.println(" pad = " + i + " size = " + dsList.size());
             this.cd(i);
             for (IDataSet ds : dsList) {
+                //System.out.println("\t --> " + ds.getName());
                 this.draw(ds, "same");
             }
         }
@@ -500,32 +503,79 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
 
     }
 
+    @Override
+    public void mouseDragged(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseMoved(MouseEvent e) {
+        //int pad = this.getPadByXY(e.getX(),e.getY());
+        //System.out.println("you're hovering over pad = " + pad);
+    }
+    int fillcolortemp = 1;
 
     @Override
     public void mouseClicked(MouseEvent e) {
-
-    	if (e.getClickCount() == 2 && !isChild) {
-            ArrayList<EmbeddedPad> pads = new ArrayList<EmbeddedPad>();
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+        if (e.getClickCount() == 2 && !isChild) {
             int pad = this.getPadByXY(e.getX(), e.getY());
             double scale = 1.5;
+            //System.out.println("you double clicked on " + pad);
             JFrame popoutFrame = new JFrame();
             EmbeddedCanvas can = new EmbeddedCanvas();
             EmbeddedPad embeddedPad = this.getPad(pad).getCopy();
-            
             can.showFPS(this.showFPS);
             this.children.add(can);
             int xSize = (int) (this.getPad(pad).getWidth());
             int ySize = (int) (this.getPad(pad).getHeight());
-            
+
             can.setPreferredSize(new Dimension((int) (xSize * scale), (int) (ySize * scale)));
             can.setChild(true);
+            ArrayList<EmbeddedPad> pads = new ArrayList<EmbeddedPad>();
             pads.add(embeddedPad);
             can.canvasPads = pads;
-            
             popoutFrame.setContentPane(can);
+            // dialogWin.setSize(400, 400);
             popoutFrame.pack();
             popoutFrame.setLocation(new Point(e.getX(), e.getY()));
             popoutFrame.setVisible(true);
+        }
+        if (e.getClickCount() == 1 && e.getButton() == 1) {
+            //System.out.println("Left click!");
+           /* if (selectedDataset != null) {
+                //-- gagik selectedDataset.getAttributes().setFillColor(fillcolortemp);
+                this.repaint();
+            }
+            selectedDataset = null;
+            for (EmbeddedPad pad : this.canvasPads) {
+                if (pad.getAxisFrame().getFrameDimensions().contains(e.getX(), e.getY())) {
+                    //System.out.println("This pad contains the click");
+                    if (pad.getDatasetPlotters().size() > 0) {
+                        for (IDataSetPlotter plotter : pad.getDatasetPlotters()) {
+                            if (plotter instanceof HistogramPlotter) {
+                                HistogramPlotter temp = (HistogramPlotter) plotter;
+                                if (temp.path.contains(e.getX(), e.getY())) {
+                                    System.out.println("You clicked on:" + temp.getName());
+                                    if (selectedDataset != temp) {
+                                        if (selectedDataset != null) {
+                                            //-- gagik selectedDataset.getAttributes().setFillColor(fillcolortemp);
+                                        }
+                                        fillcolortemp = temp.getDataSet().getAttributes().getFillColor();
+                                        selectedDataset = temp.getDataSet();
+                                        if (fillcolortemp < 10) {
+                                            //-- gagik temp.getDataSet().getAttributes().setFillColor(fillcolortemp + 10);
+                                        } else {
+                                            //-- gagik temp.getDataSet().getAttributes().setFillColor(fillcolortemp - 10);
+                                        }
+                                        this.repaint();
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }*/
         }
 
     }
@@ -534,9 +584,25 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
     public void mousePressed(MouseEvent e) {
         if (SwingUtilities.isRightMouseButton(e)) {
             popupPad = getPadByXY(e.getX(), e.getY());
+            //System.out.println("POP-UP coordinates = " + e.getX() + " " + e.getY() + "  pad = " + popupPad);
             createPopupMenu();
             popup.show(EmbeddedCanvas.this, e.getX(), e.getY());
         }
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        //throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+    }
+
+    @Override
+    public void mouseEntered(MouseEvent e) {
+
+    }
+
+    @Override
+    public void mouseExited(MouseEvent e) {
+
     }
 
     private void createPopupMenu() {
@@ -547,6 +613,7 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
         
         JMenuItem itemInvertGray  = new JMenuItem("Gray Background");
         JMenuItem itemInvertWhite = new JMenuItem("White Background");
+        
         
         JMenuItem itemSave = new JMenuItem("Save");
         JMenuItem itemSaveAs = new JMenuItem("Save As...");
@@ -619,6 +686,7 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
                 .map(Enum::name)
                 .sorted()
                 .toArray(String[]::new);
+//                .collect(Collectors.toList());
         
         JList<String> palList = new JList(palNames);
         JScrollPane palScroll = new JScrollPane(palList);
@@ -661,6 +729,8 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
         }
         this.popup.add(new JSeparator());
         this.popup.add(itemOptions);
+        //this.popup.add(itemOpenWindow);
+        //addMouseListener(this);
     }
 
     @Override
@@ -727,6 +797,12 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
             fc.setFileFilter(filterPNG);
 
             fc.addPropertyChangeListener(JFileChooser.FILE_FILTER_CHANGED_PROPERTY, evt -> {
+//                String currentPath = fc.getSelectedFile().getName();
+//                System.out.println(currentPath);
+//                File selectedFile = fc.getSelectedFile();
+//                String currentPath = selectedFile.getPath();
+//                currentPath = currentPath.substring(0, currentPath.lastIndexOf("."));
+
                 FileNameExtensionFilter currentFilter = (FileNameExtensionFilter)evt.getNewValue();
                 fc.setSelectedFile(new File(path + "." + currentFilter.getExtensions()[0]));
             });
@@ -754,6 +830,7 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
                         GStyle.setWorkingDirectory(file.getParent());
                     }
                 } else {
+                    //System.out.println("saving file : " + file.getAbsolutePath());
                     if (fc.getFileFilter() == filterPNG)
                         this.save(file.getAbsolutePath(), SaveType.PNG);
                     if (fc.getFileFilter() == filterTXT)
@@ -767,7 +844,11 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
                     GStyle.setWorkingDirectory(file.getParent());
                 }
             }
-        }
+        }/*
+        if(e.getActionCommand().compareTo("Open in New Window")==0){
+        	this.openInNewWindow(popupPad);
+        }*/
+
     }
 
     private void openFitPanel(int popupPad2) {
@@ -821,7 +902,12 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
                 try {
                     EmbeddedPad pad = (EmbeddedPad) clipboardContent.getTransferData(dmselFlavor);
                     if(pad.getDatasetPlotters().size()>0){
-                            for (int j = 0; j < pad.getDatasetPlotters().size(); j++) {
+                        /*System.out.println("---------------------------- PASTING");
+                        this.getPad(popupPad2).getAxisFrame().getAxisZ().getAttributes().setShowAxis(false);
+                        
+                        this.getPad(popupPad2).draw(pad.getDatasetPlotters().get(0).getDataSet(), "same");
+                        */
+                        for (int j = 0; j < pad.getDatasetPlotters().size(); j++) {
                             this.getPad(popupPad2).getDatasetPlotters().add(pad.getDatasetPlotters().get(j));
                         }
                     }
@@ -862,19 +948,28 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
     }
 
     private BufferedImage getScreenShot(int pad) {
+        //BufferedImage bi = new BufferedImage(
+        //    (int)this.getPad(index).getWidth(), (int)this.getPad(index).getHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
+        //BufferedImage bi = new BufferedImage(
+        //       this.getPad(pad).getWidth(), this.getPad(pad).getHeight(), BufferedImage.TYPE_4BYTE_ABGR_PRE);
         double scale = 1.0;
+        //System.out.println("you double clicked on " + pad);
+        //JDialog  dialogWin = new JDialog();
         EmbeddedCanvas can = new EmbeddedCanvas();
         EmbeddedPad embeddedPad = this.getPad(pad).getCopy();
         int xSize = (int) (this.getPad(pad).getWidth());
         int ySize = (int) (this.getPad(pad).getHeight());
-        ArrayList<EmbeddedPad> pads = new ArrayList<EmbeddedPad>();
 
         can.setPreferredSize(new Dimension((int) (xSize * scale), (int) (ySize * scale)));
         can.setMinimumSize(new Dimension((int) (xSize * scale), (int) (ySize * scale)));
         can.setSize(new Dimension((int) (xSize * scale), (int) (ySize * scale)));
         can.setChild(true);
+        ArrayList<EmbeddedPad> pads = new ArrayList<EmbeddedPad>();
         pads.add(embeddedPad);
         can.canvasPads = pads;
+        // dialogWin.setContentPane(can);
+        // dialogWin.setSize(400, 400);
+        //dialogWin.pack();
         return can.getScreenShot();
     }
 
@@ -972,8 +1067,14 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setSize(500, 400);
         EmbeddedCanvas canvas = new EmbeddedCanvas();
+        //canvas.divide(2, 2);
         canvas.setAxisFontSize(14);
+        //canvas.getPad(0).getAxisFrame().getAxisX().setAxisFontSize(18);
+        //canvas.getPad(1).getAxisFrame().getAxisY().setAxisFontSize(18);
+        //canvas.getPad(0).getAxisFrame().setDrawAxisZ(true);
 
+        //  H1F h1  = FunctionFactory.createDebugH1F(6);
+        // H1F h2  = FunctionFactory.randomGausian(100, 0.4, 5.6, 200000, 2.3, 0.8);
         H1F h2b = FunctionFactory.randomGausian(100, 0.4, 5.6, 80000, 4.0, 0.8);
         H2F h2d = FunctionFactory.randomGausian2D(24, 0.4, 5.6, 800000, 2.3, 0.8);
         H2F h2d2 = new H2F("h2d2", 100, -180, 180, 24, -180, 180);
@@ -985,7 +1086,12 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
         for (int i = 0; i < 20000; i++) {
             h2d2.fill(Math.random() * 360.0 - 180.0, Math.random() * 360.0 - 180.0);
         }
+        //canvas.draw(group);
         canvas.draw(h2d2);
+        /*for(int i =0; i < 4; i++){
+            canvas.cd(i);
+            canvas.draw(h2);
+        }*/
         frame.add(canvas);
         frame.pack();
         frame.setVisible(true);
@@ -1059,304 +1165,5 @@ public class EmbeddedCanvas extends JPanel implements MouseMotionListener, Mouse
             pad.getAxisY().setGrid(isGrid);
         }
     }
-
-	public void initAxisOptions(JPanel axisOptions, int pad) {
-		JCheckBox[] applyToAllCheckBoxes;
-		RangeSlider xSlider, ySlider;
-		String xAxisLabel, yAxisLabel, title;
-		String[] systemFonts = FontProperties.getSystemFontsArray();
-		String[] fontSize = FontProperties.getFontSizeArray();
-		String[] lineThickness = { "1", "2", "3", "4", "5", "6", "7", "8" };
-		String[] fillColor = { "34", "35", "36", "37", "38" };
-		String[] colors = { "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-		String[] colorNames = { "Black", "White", "Red", "Green", "Blue", "Yellow", "Magenta", "Cyan", "Dark Green", "Purple-ish" };
-		String[] translucency = { "100%", "80%", "60%", "40%", "20%" };
-		
-		axisOptions.setLayout(new BorderLayout());
-		JPanel optionsPanel = new JPanel(new GridBagLayout());
-		GridBagConstraints c = new GridBagConstraints();
-		c.fill = GridBagConstraints.BOTH;
-		optionsPanel.setBorder(new TitledBorder("Options"));
-		JComboBox fontsBox = new JComboBox(systemFonts);
-		fontsBox.setSelectedIndex(0);
-		for (int i = 0; i < systemFonts.length; i++) {
-			if (getPad(pad).getAxisX().getTitleFont().getFontName().contains(systemFonts[i])) {
-				fontsBox.setSelectedIndex(i);
-			}
-		}
-		JComboBox axisFontSizeBox = new JComboBox(fontSize);
-		axisFontSizeBox.setSelectedItem("" + getPad(pad).getAxisX().getLabelFontSize());
-		JComboBox axisTitleFontSizeBox = new JComboBox(fontSize);
-		axisTitleFontSizeBox.setSelectedItem("" + getPad(pad).getAxisX().getTitleFontSize());
-		JComboBox titleFontSizeBox = new JComboBox(fontSize);
-		titleFontSizeBox.setSelectedItem("" + getPad(pad).getTitleFontSize());
-		JComboBox statBoxFontSizeBox = new JComboBox(fontSize);
-		statBoxFontSizeBox.setSelectedItem("" + getPad(pad).getStatBoxFontSize());
-		
-		JLabel fontLabel = new JLabel("Font:");
-		JLabel axisFontSizeLabel = new JLabel("Axis Label Font Size:");
-		JLabel axisTitleFontSizeLabel = new JLabel("Axis Title Font Size:");
-		JLabel titleFontSizeLabel = new JLabel("Title Font Size:");
-		JLabel statBoxFontSizeLabel = new JLabel("Stat Box Font Size:");
-		JLabel xAxisTitleLabel = new JLabel("X Axis Title:");
-		JLabel yAxisTitleLabel = new JLabel("Y Axis Title:");
-		JLabel titleLabel = new JLabel("Title:");
-		
-		JTextField xAxisTextField = new JTextField(getPad(pad).getAxisX().getTitle());
-		JTextField yAxisTextField = new JTextField(getPad(pad).getAxisY().getTitle());
-		JTextField titleTextField = new JTextField(getPad(pad).getTitle());
-		JPanel gridPanel = new JPanel(new GridLayout(1, 2));
-		JCheckBox xGridBox = new JCheckBox("Grid X");
-		xGridBox.setSelected(getPad(pad).getAxisX().getGrid());
-		JCheckBox yGridBox = new JCheckBox("Grid Y");
-		yGridBox.setSelected(getPad(pad).getAxisY().getGrid());
-		gridPanel.add(xGridBox);
-		gridPanel.add(yGridBox);
-		JPanel applyToAllPanel = new JPanel(new BorderLayout());
-		String[] applyToAllOptions = { "Font", "Title Font Size", "Axis Title Font Size", "Axis Label Font Size",
-				"Stat Box Font Size", "Title", "X Axis Title", "Y Axis Title", "Grid X", "Grid Y" };
-		boolean[] applyToAllDefaults = { true, true, true, true, true, false, false, false, true, true, false, false };
-		applyToAllCheckBoxes = new JCheckBox[applyToAllOptions.length];
-		for (int i = 0; i < applyToAllOptions.length; i++) {
-			applyToAllCheckBoxes[i] = new JCheckBox(applyToAllOptions[i]);
-			applyToAllCheckBoxes[i].setSelected(applyToAllDefaults[i]);
-		}
-		JComboCheckBox applyToAllComboCheckBox = new JComboCheckBox(applyToAllCheckBoxes);
-		JToggleButton applyToAllButton = new JToggleButton("Apply To All");
-		ActionListener applyToAllListener = new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				if (applyToAllButton.isSelected()) {
-					if (applyToAllCheckBoxes[0].isSelected()) {
-						setFont(systemFonts[fontsBox.getSelectedIndex()]);
-					}
-					if (applyToAllCheckBoxes[1].isSelected()) {
-						setTitleSize(Integer.parseInt(fontSize[titleFontSizeBox.getSelectedIndex()]));
-					}
-					if (applyToAllCheckBoxes[2].isSelected()) {
-						setAxisLabelSize(Integer.parseInt(fontSize[axisFontSizeBox.getSelectedIndex()]));
-					}
-					if (applyToAllCheckBoxes[3].isSelected()) {
-						setAxisTitleSize(Integer.parseInt(fontSize[axisTitleFontSizeBox.getSelectedIndex()]));
-					}
-					if (applyToAllCheckBoxes[4].isSelected()) {
-						setStatBoxFontSize(Integer.parseInt(fontSize[statBoxFontSizeBox.getSelectedIndex()]));
-					}
-					if (applyToAllCheckBoxes[5].isSelected()) {
-						setPadTitles(titleTextField.getText());
-					}
-					if (applyToAllCheckBoxes[6].isSelected()) {
-						setPadTitlesX(xAxisTextField.getText());
-					}
-					if (applyToAllCheckBoxes[7].isSelected()) {
-						setPadTitlesY(yAxisTextField.getText());
-					}
-					if (applyToAllCheckBoxes[8].isSelected()) {
-						setGridX(xGridBox.isSelected());
-					}
-					if (applyToAllCheckBoxes[9].isSelected()) {
-						setGridY(yGridBox.isSelected());
-					}
-					update();
-				}
-			}
-		};
-		ItemListener itemListener = new ItemListener() {
-			@Override
-			public void itemStateChanged(ItemEvent e) {
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		};
-		for (int i = 0; i < applyToAllOptions.length; i++) {
-			applyToAllCheckBoxes[i].addItemListener(itemListener);
-		}
-		applyToAllComboCheckBox.addActionListener(applyToAllListener);
-		applyToAllButton.addActionListener(applyToAllListener);
-		applyToAllPanel.add(applyToAllComboCheckBox, BorderLayout.WEST);
-		applyToAllPanel.add(applyToAllButton, BorderLayout.EAST);
-		fontsBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).setFontNameAll(systemFonts[fontsBox.getSelectedIndex()]);
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		axisFontSizeBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).setAxisLabelFontSize(Integer.parseInt(fontSize[axisFontSizeBox.getSelectedIndex()]));
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		axisTitleFontSizeBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).setAxisTitleFontSize(Integer.parseInt(fontSize[axisTitleFontSizeBox.getSelectedIndex()]));
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		titleFontSizeBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).setTitleFontSize(Integer.parseInt(fontSize[titleFontSizeBox.getSelectedIndex()]));
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		statBoxFontSizeBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).setStatBoxFontSize(Integer.parseInt(fontSize[statBoxFontSizeBox.getSelectedIndex()]));
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		xAxisTextField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).getAxisX().setTitle(xAxisTextField.getText());
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		xAxisTextField.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				getPad(pad).getAxisX().setTitle(xAxisTextField.getText());
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		yAxisTextField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).getAxisY().setTitle(yAxisTextField.getText());
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		yAxisTextField.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				getPad(pad).getAxisY().setTitle(yAxisTextField.getText());
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		titleTextField.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).setTitle(titleTextField.getText());
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		titleTextField.addKeyListener(new KeyListener() {
-			@Override
-			public void keyTyped(KeyEvent e) {
-			}
-
-			@Override
-			public void keyPressed(KeyEvent e) {
-			}
-
-			@Override
-			public void keyReleased(KeyEvent e) {
-				getPad(pad).setTitle(titleTextField.getText());
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		xGridBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).getAxisX().setGrid(xGridBox.isSelected());
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		yGridBox.addActionListener(new ActionListener() {
-			public void actionPerformed(ActionEvent e) {
-				getPad(pad).getAxisY().setGrid(yGridBox.isSelected());
-				update();
-				update();
-				applyToAllListener.actionPerformed(new ActionEvent("", 0, ""));
-			}
-		});
-		int yGrid = 0;
-		c.gridy = yGrid++;
-		optionsPanel.add(fontLabel, c);
-		optionsPanel.add(fontsBox, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(titleFontSizeLabel, c);
-		optionsPanel.add(titleFontSizeBox, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(axisTitleFontSizeLabel, c);
-		optionsPanel.add(axisTitleFontSizeBox, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(axisFontSizeLabel, c);
-		optionsPanel.add(axisFontSizeBox, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(statBoxFontSizeLabel, c);
-		optionsPanel.add(statBoxFontSizeBox, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(titleLabel, c);
-		optionsPanel.add(titleTextField, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(titleLabel, c);
-		optionsPanel.add(titleTextField, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(xAxisTitleLabel, c);
-		optionsPanel.add(xAxisTextField, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(yAxisTitleLabel, c);
-		optionsPanel.add(yAxisTextField, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(xGridBox, c);
-		optionsPanel.add(yGridBox, c);
-		c.gridy = yGrid++;
-		optionsPanel.add(applyToAllComboCheckBox, c);
-		optionsPanel.add(applyToAllButton, c);
-		axisOptions.add(optionsPanel, BorderLayout.PAGE_START);
-	}
-
-	@Override
-	public void mouseReleased(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseEntered(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseExited(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseDragged(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
-
-	@Override
-	public void mouseMoved(MouseEvent e) {
-		// TODO Auto-generated method stub
-		
-	}
 
 }

@@ -25,9 +25,11 @@ import org.jlab.groot.group.DataGroup;
  */
 public class EmbeddedCanvasGroup extends JPanel implements ActionListener {
 
-    private EmbeddedCanvasGroupProduct embeddedCanvasGroupProduct = new EmbeddedCanvasGroupProduct();
-	private int     padsPerPage = 12;
+    private EmbeddedCanvas canvas = new EmbeddedCanvas();
+    private int     padsPerPage = 12;
     private DataGroup dataGroup = new DataGroup();
+    private int     currentPage = 0;
+    private int        maxPages = 1;
     private List<IDataSet> canvasDataSets = new ArrayList<IDataSet>();
     JLabel  progressLabel = null;
     
@@ -44,7 +46,7 @@ public class EmbeddedCanvasGroup extends JPanel implements ActionListener {
         buttonsPanel.add(buttonPrev);
         buttonsPanel.add(this.progressLabel);
         buttonsPanel.add(buttonNext);
-        add(this.embeddedCanvasGroupProduct.getCanvas(),BorderLayout.CENTER);
+        add(this.canvas,BorderLayout.CENTER);
         add(buttonsPanel,BorderLayout.PAGE_END);
     }
     
@@ -52,10 +54,10 @@ public class EmbeddedCanvasGroup extends JPanel implements ActionListener {
     public void setData(List<IDataSet>  datasets){
         this.canvasDataSets.clear();
         this.canvasDataSets.addAll(datasets);
-        embeddedCanvasGroupProduct.setCurrentPage(0);
-        embeddedCanvasGroupProduct.setMaxPages(this.canvasDataSets.size() / this.padsPerPage);
-        if(embeddedCanvasGroupProduct.getMaxPages()*this.padsPerPage<this.canvasDataSets.size()){
-            embeddedCanvasGroupProduct.setMaxPages(embeddedCanvasGroupProduct.getMaxPages() + 1);
+        this.currentPage = 0;
+        this.maxPages = this.canvasDataSets.size()/this.padsPerPage;
+        if(maxPages*this.padsPerPage<this.canvasDataSets.size()){
+            this.maxPages++;
         }
         this.updateCanvas();
         
@@ -63,34 +65,41 @@ public class EmbeddedCanvasGroup extends JPanel implements ActionListener {
     
     
     public void updateCanvas(){
-        this.embeddedCanvasGroupProduct.getCanvas().clear();
-        this.embeddedCanvasGroupProduct.getCanvas().divide(3, 4);
+        this.canvas.clear();
+        this.canvas.divide(3, 4);
         for(int i = 0; i < this.padsPerPage; i++){
-            int index = embeddedCanvasGroupProduct.getCurrentPage()*this.padsPerPage + i;
-            this.embeddedCanvasGroupProduct.getCanvas().cd(i);
+            int index = currentPage*this.padsPerPage + i;
+            this.canvas.cd(i);
             if(index<this.canvasDataSets.size()){
-                this.embeddedCanvasGroupProduct.getCanvas().draw(this.canvasDataSets.get(index));
+                this.canvas.draw(this.canvasDataSets.get(index));
             }
         }
-        this.progressLabel.setText(String.format("%d/%d", this.embeddedCanvasGroupProduct.getCurrentPage()+1,this.embeddedCanvasGroupProduct.getMaxPages()));
+        this.progressLabel.setText(String.format("%d/%d", this.currentPage+1,this.maxPages));
     }
     
     public void nextPage(){
-        embeddedCanvasGroupProduct.nextPage(this);
+        if((currentPage+1)<maxPages){
+            currentPage++;
+            this.updateCanvas();
+        }
     }
     
     public void previousPage(){
-        embeddedCanvasGroupProduct.previousPage(this);
+        if(currentPage>0){
+            currentPage--;
+            this.canvas.clear();
+            this.updateCanvas();
+        }
     }
     
     
     @Override
     public void actionPerformed(ActionEvent e) {
         if(e.getActionCommand().compareTo("<")==0){
-            embeddedCanvasGroupProduct.previousPage(this);
+            this.previousPage();
         }
         if(e.getActionCommand().compareTo(">")==0){
-            embeddedCanvasGroupProduct.nextPage(this);
+            this.nextPage();
         }
     }
      public static void main(String[] args){

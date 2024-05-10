@@ -120,7 +120,11 @@ public class GraphicsAxis {
     
     
     public int  getSize(Graphics2D g2d, boolean vertical){
-        return axisLabels.getSize(g2d, vertical);
+        if(vertical==true){
+            return this.axisLabels.getAxisMaxWidth(g2d);
+        } else {
+            return this.axisLabels.getAxisMaxHeight(g2d);
+        }
     }
     
     public int   getAxisDivisions(){

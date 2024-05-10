@@ -196,12 +196,4 @@ public class GraphicsAxisLabels {
         str.append(" )");
         return str.toString();
     }
-
-	public int getSize(Graphics2D g2d, boolean vertical) {
-		if (vertical == true) {
-			return getAxisMaxWidth(g2d);
-		} else {
-			return getAxisMaxHeight(g2d);
-		}
-	}
 }

@@ -36,9 +36,11 @@ import org.jlab.groot.tree.Tree;
  */
 public class EmbeddedCanvasTabbed extends JPanel implements ActionListener {
     
-    private EmbeddedCanvasTabbedProduct embeddedCanvasTabbedProduct = new EmbeddedCanvasTabbedProduct();
-	private JTabbedPane   tabbedPane = null; 
+    private JTabbedPane   tabbedPane = null; 
+    private JPanel       actionPanel = null;
     private int          canvasOrder = 1;
+    private int iconSizeX = 25;
+    private int iconSizeY = 25;
     private Map<String,EmbeddedCanvas>  tabbedCanvases = new LinkedHashMap<String,EmbeddedCanvas>();
 
     private int isDynamic = 0;
@@ -49,7 +51,7 @@ public class EmbeddedCanvasTabbed extends JPanel implements ActionListener {
         this.setMinimumSize(new Dimension(200,200));
         this.setSize(400, 500);
         initUI();
-        embeddedCanvasTabbedProduct.initBottomBar(this);
+        initBottomBar();
         addCanvas();
     }
     
@@ -60,7 +62,7 @@ public class EmbeddedCanvasTabbed extends JPanel implements ActionListener {
         this.setSize(400, 500);
         this.initUI();
         if(isStatic==false){
-            embeddedCanvasTabbedProduct.initBottomBar(this);
+            this.initBottomBar();
         }
     }
     
@@ -71,7 +73,7 @@ public class EmbeddedCanvasTabbed extends JPanel implements ActionListener {
         this.setSize(400, 500);
         this.initUI();
         if(isStatic==false){
-            embeddedCanvasTabbedProduct.initBottomBar(this);
+            this.initBottomBar();
         }
         for(String canvas : canvases){
             addCanvas(canvas);
@@ -93,6 +95,51 @@ public class EmbeddedCanvasTabbed extends JPanel implements ActionListener {
         this.add(tabbedPane,BorderLayout.CENTER);
     }
         
+    private void initBottomBar(){
+        actionPanel = new JPanel();
+        actionPanel.setLayout(new FlowLayout());
+                
+        this.add(actionPanel,BorderLayout.PAGE_END);
+        ImageIcon newTabIcon = new ImageIcon();
+        ImageIcon removeTabIcon = new ImageIcon();
+        ImageIcon editTabIcon = new ImageIcon();
+        ImageIcon clearTabIcon = new ImageIcon();
+		try {
+			Image addImage = ImageIO.read(Tree.class.getClassLoader().getResource("icons/tree/canvas_add.png"));
+			Image clearImage = ImageIO.read(Tree.class.getClassLoader().getResource("icons/tree/1477453861_star_full.png"));
+			Image deleteImage = ImageIO.read(Tree.class.getClassLoader().getResource("icons/tree/canvas_delete.png"));
+			Image editImage = ImageIO.read(Tree.class.getClassLoader().getResource("icons/tree/1477454132_calendar.png"));
+			newTabIcon.setImage(addImage.getScaledInstance(iconSizeX, iconSizeY, Image.SCALE_SMOOTH));
+			clearTabIcon.setImage(clearImage.getScaledInstance(iconSizeX, iconSizeY, Image.SCALE_SMOOTH));
+			editTabIcon.setImage(editImage.getScaledInstance(iconSizeX, iconSizeY, Image.SCALE_SMOOTH));
+			removeTabIcon.setImage(deleteImage.getScaledInstance(iconSizeX, iconSizeY, Image.SCALE_SMOOTH));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+        JButton buttonAdd = new JButton(newTabIcon);
+        buttonAdd.setActionCommand("add canvas");
+        buttonAdd.addActionListener(this);
+        
+        JButton buttonRemove = new JButton(removeTabIcon);
+        buttonRemove.setActionCommand("remove canvas");
+        buttonRemove.addActionListener(this);
+        
+        JButton buttonDivide = new JButton(editTabIcon);
+        buttonDivide.setActionCommand("divide");
+        buttonDivide.addActionListener(this);
+        
+        JButton buttonClear = new JButton(clearTabIcon);
+        buttonClear.setActionCommand("clear");
+        buttonClear.addActionListener(this);
+        
+        actionPanel.add(buttonAdd);
+        actionPanel.add(buttonRemove);
+        actionPanel.add(buttonDivide);
+        actionPanel.add(buttonClear);
+    }
+    
     public void setActiveCanvas(String title){
         for(int index = 0; index < this.tabbedCanvases.size(); index++){
             String tabTitle = tabbedPane.getTitleAt(index);
