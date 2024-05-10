@@ -202,26 +202,6 @@ public class Directory<T> {
                 currentDirectory = startDir;
             }
         }
-        /*
-        if(name.compareTo("/")==0){
-            currentDirectory = null;
-            System.out.println("chdir : " + getDirectoryPath());
-            return true;
-        } 
-        
-        if(currentDirectory != null){
-            if(name.contains("/")==false){
-                if(currentDirectory.getDirectoryMap().containsKey(name)==true){
-                    this.currentDirectory = currentDirectory.getDir(name);
-                } else {
-                    System.out.println("chdir : direcory not found " + name);
-                    return false;
-                }
-            }
-        } else {
-            currentDirectory = this.directoryMap.get(name);
-        }
-        System.out.println("chdir : " + getDirectoryPath());*/
         return success;
     }
     
@@ -384,35 +364,15 @@ public class Directory<T> {
         String object = fullPath.substring(index+1, fullPath.length());
         
         Directory saveDir = currentDirectory;
-        //System.out.println("PATH ["+path+"]");
         boolean status = cd(path);
+        
         if(status == true){
             T item = (T) getDir().getObjectMap().get(object);
             currentDirectory = saveDir;
             return item;
         }
-        
         return null;
-        /*
-        System.out.println("[Get Object]  [" + path + "]  [" + object + "]");
-        System.out.println(" getting directory ["+path+"]");
-        Directory  dir = getDirectoryByPath(path);
-        if(dir==null){
-            System.out.println("[Directory] --> directory does not exist with name : " + path );
-            return null;
-        }
-        
-        if(dir.getObjectMap().containsKey(object)==false){
-            System.out.println("[Directory] --> object "  + object + "  does not exist in " + path );
-            return null;
-        }
-        return (T) dir.getObjectMap().get(object);
-        */
     }
-    /*
-    private List<String>  getRecursiveLeafs(Directory dir){
-        
-    }*/
     
     public Directory getDir(){
         if(currentDirectory==null) return this;
@@ -523,58 +483,5 @@ public class Directory<T> {
         System.out.println("SIZE = " + dir.getObjectList().size());
         dir.add("TATA", new H1F());
         System.out.println("SIZE = " + dir.getObjectList().size());
-        
-        /*
-        dir.mkdir("a");
-        dir.cd("a");
-        dir.pwd();
-        dir.mkdir("b");
-        dir.cd("b");
-        dir.mkdir("c");
-        dir.cd("c");
-        dir.pwd();
-        
-        dir.cd();
-        dir.pwd();
-        dir.cd("a/b/c");
-        dir.getDir().add("h1",new H1F("h1",100,0.3,0.4));
-        dir.pwd();
-        List<String> listing = dir.getCompositeObjectList(dir);
-        for(String item : listing){
-            System.out.println(item);
-        }
-        dir.cd("/a");
-        dir.pwd();
-        H1F h1 = dir.getObject("/a/b/c/h1");
-        dir.pwd();*/
-        //System.out.println(h1);
-        /*
-        dir.mkdir("a");
-        dir.mkdir("b");
-        dir.cd("a");
-        
-        dir.getDir().add("h1",new H1F("h1",100,0.3,0.4));
-        dir.mkdir("c");
-        dir.cd("c");
-        dir.getDir().add("h1c",new H1F("h1",100,0.3,0.4));
-        dir.mkdir("d");
-        dir.cd("d");
-        System.out.println("  name -> " + dir.getDir().getName() +  "  path = " + dir.getDir().getDirectoryPath());
-        dir.getDir().add("h1cd",new H1F("h1",100,0.3,0.4));
-        dir.cd();
-        dir.cd("b");
-        dir.getDir().add("h2",new H1F("h2",100,0.3,0.4));
-        dir.cd();
-        List<String> listing = dir.getCompositeObjectList(dir);
-        for(String item : listing){
-            System.out.println(item);
-        }
-        
-        Directory dird = dir.getDirectoryByPath("/a/c/d");
-        System.out.println(" name " + dird.getName() + "  " + dird.getDirectoryPath());
-        
-        H1F htest = dir.getObject("/a/c/d/h1cd");
-        System.out.println("htest = " + htest.getName());
-        */
     }
 }

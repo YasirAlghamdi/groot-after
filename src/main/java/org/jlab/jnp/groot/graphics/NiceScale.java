@@ -11,17 +11,12 @@ import java.util.List;
 
 public class NiceScale {
     
-    private static int[] powers = new int[]{1,10,100,1000,10000,100000,1000000,10000000};
+    private NiceScaleProduct niceScaleProduct = new NiceScaleProduct();
+
+	public static int[] powers = new int[]{1,10,100,1000,10000,100000,1000000,10000000};
     
-    private double minPoint;
-    private double maxPoint;
-    private double maxTicks = 10;
-    private double tickSpacing;
     private double range;
-    private double niceMin;
     private double niceMax;
-    private String orderString = "%.2f";
-    
     /**
      * Instantiates a new instance of the NiceScale class.
      *
@@ -29,25 +24,25 @@ public class NiceScale {
      * @param max the maximum data point on the axis
      */
     public NiceScale(double min, double max) {
-        this.minPoint = min;
-        this.maxPoint = max;
+        niceScaleProduct.setMinPoint(min);
+        niceScaleProduct.setMaxPoint(max);
         calculate();
     }
     /**
      * Calculate and update values for tick spacing and nice
      * minimum and maximum data points on the axis.
      */
-    private void calculate() {
-        this.range = niceNum(maxPoint - minPoint, false);
-        this.tickSpacing = niceNum(range / (maxTicks - 1), true);
-        this.niceMin =
-                Math.floor(minPoint / tickSpacing) * tickSpacing;
+    public void calculate() {
+        this.range = niceNum(niceScaleProduct.getMaxPoint() - niceScaleProduct.getMinPoint(), false);
+        niceScaleProduct.setTickSpacing(niceNum(range / (niceScaleProduct.getMaxTicks() - 1), true));
+        niceScaleProduct.setNiceMin(Math.floor(niceScaleProduct.getMinPoint() / niceScaleProduct.getTickSpacing())
+				* niceScaleProduct.getTickSpacing());
         this.niceMax =
-                Math.ceil(maxPoint / tickSpacing) * tickSpacing;
+                Math.ceil(niceScaleProduct.getMaxPoint() / niceScaleProduct.getTickSpacing()) * niceScaleProduct.getTickSpacing();
     }
     
     public double getSpacing(){
-        return this.tickSpacing;
+        return this.niceScaleProduct.getTickSpacing();
     }
     /**
      * Returns a "nice" number approximately equal to range Rounds
@@ -94,9 +89,7 @@ public class NiceScale {
      * @param maxPoint the maximum data point on the axis
      */
     public void setMinMaxPoints(double minPoint, double maxPoint) {
-        this.minPoint = minPoint;
-        this.maxPoint = maxPoint;
-        calculate();
+        niceScaleProduct.setMinMaxPoints(minPoint, maxPoint, this);
     }
     
     /**
@@ -105,16 +98,15 @@ public class NiceScale {
      * @param maxTicks the maximum number of tick marks for the axis
      */
     public void setMaxTicks(double maxTicks) {
-        this.maxTicks = maxTicks;
-        calculate();
+        niceScaleProduct.setMaxTicks(maxTicks, this);
     }
     
     public void getTicks(List<Double> ticks){
         ticks.clear();
-        for(int i = 0 ; i < this.maxTicks+5; i++){
+        for(int i = 0 ; i < this.niceScaleProduct.getMaxTicks()+5; i++){
             //double value = this.minPoint + i*this.tickSpacing;
-            double value = niceMin + i*this.tickSpacing;
-            if(value>=this.minPoint&&value<=this.maxPoint)
+            double value = niceScaleProduct.getNiceMin() + i*this.niceScaleProduct.getTickSpacing();
+            if(value>=this.niceScaleProduct.getMinPoint()&&value<=this.niceScaleProduct.getMaxPoint())
                 ticks.add(value);
         }
     }
@@ -133,67 +125,16 @@ public class NiceScale {
         return -1;
     }
     public int getScaleOrder(){
-        //System.out.println(" Nice Min = " + this.niceMin + " nice MAx = " + niceMax);
-        //if(this.tickSpacing>0){ return 0;}
-        for(int i = 0; i < NiceScale.powers.length; i++){
-            int data = ( (int) (this.tickSpacing*NiceScale.powers[i]));
-            int tail = data%10;
-            if(data!=0&&tail==0) return (i-1);
-            //System.out.printf("oreder = %3d, dive = %9d, data = %5d, tail = %5d\n",
-            //        i,NiceScale.powers[i],data,tail);
-        }
-        return -1;
+        return niceScaleProduct.getScaleOrder();
     }
     
-    public String getOrderString(){return this.orderString;}
+    public String getOrderString(){return this.niceScaleProduct.getOrderString();}
     
     public void   setOrderString(){
-        int order = this.getNumberOrder(this.tickSpacing);
-        //System.out.println(" ORDER = " + order);
-        if(order==0){
-            int nminorder = getNumberOrder(niceMin);
-            //System.out.println("ORDER MIN = " + niceMin + "  " + nminorder);
-            if(nminorder==0){ 
-                orderString = "%.0f";
-                return;
-            }
-        }
-        if(order>=0){
-            orderString = "%."+order+"f";
-        } else {
-            orderString = "%e";
-        }
+        niceScaleProduct.setOrderString(this);
         
     }
     public static void main(String[] args){
-        NiceScale nice = new NiceScale(0,10000);
-        nice.setMinMaxPoints(0, 100000);
-        nice.setOrderString();
-        
-        System.out.println("Order String = " +  nice.getOrderString());
-        
-        System.out.println("spacing " + nice.getSpacing() + " ");
-        System.out.println("order   " + nice.getScaleOrder());
-        System.out.println("num order " + nice.getNumberOrder(100));
-        List<Double> ticks = new ArrayList<Double>();
-        nice.getTicks(ticks);
-        for(int i = 0; i < ticks.size(); i++){
-            System.out.println(" --- " + i + "  value = " + ticks.get(i));
-        }
-        
-        
-        for(int i = 0; i < 10 ; i++){
-            double num = 100*Math.pow(10, -i);
-            System.out.printf("%18.8f   -  %d\n",num,nice.getNumberOrder(num));
-        }
-        
-        System.out.printf("%.0f\n",100000.0);
-        
-        
-        System.out.println("----------------->>>");
-        nice.setMinMaxPoints(0, 11744.739990);
-        
-        nice.setOrderString();
-        System.out.println(nice.getOrderString());
+        NiceScaleProduct.main(args);
     }
 }
